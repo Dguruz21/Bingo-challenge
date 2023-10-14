@@ -1,0 +1,19 @@
+{
+  "name": "bingo-challengue",
+  "version": "1.0.0",
+  "description": "sls create -t aws-nodejs\r serverless plugin install -n serverless-iam-roles-per-function",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1473.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "serverless-iam-roles-per-function": "^3.2.0"
+  }
+}

@@ -1,0 +1,98 @@
+service: bingo-challengue
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  memorySize: 128
+  logRetentionInDays: 1
+  environment:
+    REGION: ${self:provider.region}
+    BINGO_GAME_TABLE: !Ref BingoGameTable
+    BINGO_CARD_TABLE: !Ref BingoCardTable
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+  httpApi:
+    authorizers:
+      tokenAuth:
+        type: request
+        identitySource: 
+          - $request.header.Authorization
+        functionName: tokenAuthorizer
+  
+functions:
+  tokenAuthorizer:
+    handler: src/authorizers/tokenAuthorizer.handler
+
+  createBingoGame:
+    handler: src/handlers/createBingoGame.handler
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+      Resource: !GetAtt BingoGameTable.Arn
+    events:
+      - httpApi:
+          path: /create
+          method: post
+          authorizer: tokenAuth
+
+  createBingoCard:
+    handler: src/handlers/createBingoCard.handler
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+      Resource: !GetAtt BingoCardTable.Arn
+    events:
+      - httpApi:
+          path: /card
+          method: post
+
+  checkBingoWinner:
+    handler: src/handlers/checkBingoWinner.handler
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+      Resource: 
+        - !GetAtt BingoCardTable.Arn
+        - !GetAtt BingoGameTable.Arn
+    events:
+      - httpApi:
+          path: /check
+          method: post
+
+  callBingoNumbers:
+    handler: src/handlers/callBingoNumbers.handler
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+      Resource: 
+        - !GetAtt BingoGameTable.Arn
+        - !GetAtt BingoCardTable.Arn
+    events:
+      - httpApi:
+          path: /call/{id}
+          method: get
+
+resources:
+  Resources:
+    BingoGameTable: ${file(resources/BingoGameTable.yml):BingoGameTable}
+    BingoCardTable: ${file(resources/BingoCardTable.yml):BingoCardTable}
+plugins:
+  - serverless-iam-roles-per-function
+
+

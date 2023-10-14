@@ -1,0 +1,12 @@
+BingoGameTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: bingo-game-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: GameId
+        AttributeType: S
+    KeySchema:
+      - AttributeName: GameId
+        KeyType: HASH
+     
